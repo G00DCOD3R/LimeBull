@@ -44,11 +44,7 @@ def main():
 				extract_urls.append(url + tmp + ',archiwum.html')
 				#   extracting it's href
 		
-		#   print(extract_urls)
-		#   if something doesn't work (execution stopped in proccess)
-		#   then just slice extract_urls, so as to not copy same data twice
-		#   added counter for simplicity
-		#   by default latest_complete is set as -1, so as not to interfere with downloading process
+
 		
 	else:
 		while True: # multiline reading 
@@ -59,7 +55,12 @@ def main():
 				break
 		print(extract_urls)
 		
-		
+	#   print(extract_urls)
+	#   if something doesn't work (execution stopped in proccess)
+	#   then just slice extract_urls, so as to not copy same data twice
+	#   added counter for simplicity
+	#   by default latest_complete is set as -1, so as not to interfere with downloading process
+	
 	latest_completed_download = -1
 	if running_mode == 'AUTOMATED':
 		tmp_file = open('TEMP_web_scrap_latest', 'r')
