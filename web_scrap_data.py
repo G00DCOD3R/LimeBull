@@ -2,7 +2,7 @@ import pandas as pd
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-import time, os, requests
+import time, os, requests, sys
 
 #   Program that scrap data from money.pl, about historical prices of stocks
 #   akcje.csv describe which stocks we want to scrap
@@ -13,6 +13,10 @@ def main():
 	url = 'https://www.money.pl/gielda/spolki-gpw/'
 	page = requests.get(url)
 	soup = BeautifulSoup(page.content, 'html.parser')
+	running_mode = 'MANUAL'
+	if len(sys.argv) > 1:
+		running_mode = 'AUTOMATED'
+	print("current mode is " + str(running_mode))
 	
 	result = soup.find('div', class_='rt-tbody')
 	stocks = result.find_all('a', class_ = 'sc-18yizqs-0 sUail')
@@ -39,7 +43,11 @@ def main():
 	#   Some stuff for drivers (second one says wait 6 seconds before error)
 	
 	
-	latest_completed_download = 1
+	latest_completed_download = -1
+	if running_mode == 'AUTOMATED':
+		tmp_file = open('TEMP_web_scrap_latest', 'r')
+		latest_completed_download = int(tmp_file.readlines()[0])
+		tmp_file.close()
 	counter = latest_completed_download + 1
 	
 	extract_urls = extract_urls[counter:]
@@ -102,8 +110,11 @@ def main():
 			return False
 		
 		if is_downloaded():
-			print('\n\nYou already have some moneypl file in your download directory!\nPlease remove it before continuing\n\n')
-			raise('File exists')
+			if running_mode == 'MANUAL':
+				print('\n\nYou already have some moneypl file in your download directory!\nPlease remove it before continuing\n\n')
+				raise('File exists')
+			else:
+				os.system('rm ~/Downloads/moneypl*')
 		
 		dwn_button.click()
 		stock_name = driver.find_element_by_xpath(PAGETITLE_h1_xpath)
@@ -133,12 +144,22 @@ def main():
 		
 		os.system('mv ~/Downloads/moneypl*.csv ./data_files/' + stock_name_str + '.csv')
 		print(' Done: ' + str(counter))
+		
+		if running_mode == 'AUTOMATED':
+			tmp_file = open('TEMP_web_scrap_latest', 'w')
+			tmp_file.write(str(counter) + "\n")
+			tmp_file.close()
+			
 		counter += 1
 		
 		#   break
 	
-	print("YOU MADE IT!!!")
-	wait_for_user_input = input()
+	if running_mode == 'AUTOMATED':
+		with open('TEMP_web_scrap_latest', 'w') as tmp_file:
+			tmp_file.write("Done\n")
+	else:
+		print("YOU MADE IT!!!")
+		wait_for_user_input = input()
 
 if __name__ == "__main__":
 	main()
