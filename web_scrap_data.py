@@ -35,54 +35,75 @@ def main():
 			#   extracting it's href
 	
 	driver = webdriver.Chrome()
-	driver.implicitly_wait(5)
-	#   Some stuff for drivers (second one says wait 5 seconds before error)
+	driver.implicitly_wait(6)
+	#   Some stuff for drivers (second one says wait 6 seconds before error)
 	
-	#   extract_urls = extract_urls[13:]
+	
+	latest_completed_download = 1
+	counter = latest_completed_download + 1
+	
+	extract_urls = extract_urls[counter:]
+	#   print(extract_urls)
 	#   if something doesn't work (execution stopped in proccess)
 	#   then just slice extract_urls, so as to not copy same data twice
 	#   added counter for simplicity
-	
-	counter = 0
+	#   by default latest_complete is set as -1, so as not to interfere with downloading process
 	
 	for eurl in extract_urls:
 		#   eurl stands for extracted url XD
 		print(eurl, end = " ")
 		
 		
+		#   don't forget to update those paths, when website changes ;) 
 		AKCEPTUJE_button_xpath = '/html/body/div[3]/div/div[2]/div[3]/div/button[2]'
-		OKRES_textbox_xpath = '/html/body/div[4]/div/div[9]/div/div[2]/div/main/div[2]/div[1]/div/div[3]/div/div[1]/div/div/div/div/input'
-		POBIERZCSV_button_xpath = '/html/body/div[4]/div/div[9]/div/div[2]/div/main/div[2]/div[1]/div/div[3]/div/div[2]/div/div/div[1]/div[1]/div/div[8]/div/div/div/div[2]/button[2]'
-		DWNMENU_svg_xpath = '/html/body/div[4]/div/div[9]/div/div[2]/div/main/div[2]/div[1]/div/div[3]/div/div[2]/div/div/div[1]/div[1]/div/div[8]/div/div/div'
-		PAGETITLE_h1_xpath = '/html/body/div[4]/div/div[9]/div/div[2]/div/main/div[1]/div/div/h1'
+		OKRES_textbox_xpath = '/html/body/div[5]/div/div[10]/div/div[2]/div/main/div[2]/div[1]/div/div[3]/div/div[1]/div/div/div/div/input'
+		POBIERZCSV_button_xpath = '/html/body/div[5]/div/div[10]/div/div[2]/div/main/div[2]/div[1]/div/div[3]/div/div[2]/div/div/div[1]/div[1]/div/div[8]/div/div/div/div[2]/button[2]'
+		DWNMENU_svg_xpath = '/html/body/div[5]/div/div[10]/div/div[2]/div/main/div[2]/div[1]/div/div[3]/div/div[2]/div/div/div[1]/div[1]/div/div[8]/div/div/div/div[1]'
+		PAGETITLE_h1_xpath = '/html/body/div[5]/div/div[10]/div/div[2]/div/main/div[1]/div/div/h1'
+		YETANOTHERACCEPT_button_xpath = '/html/body/div[8]/div[5]'
 		#   this one is pretty self-explaining, just web-scraping of useful paths
 		
 		driver.get(eurl)
 		action = webdriver.ActionChains(driver)
 		try:
 			driver.find_element_by_xpath(AKCEPTUJE_button_xpath).click()
+			driver.find_element_by_xpath(YETANOTHERACCEPT_button_xpath).click()
 		except:
 			print('no accept button', end = ' ')
 		driver.execute_script("window.scrollBy(0, 200);")
-		time.sleep(2)
 		date_box = driver.find_element_by_xpath(OKRES_textbox_xpath)
 		date_box.clear()
-		date_box.send_keys('01.01.2000 - 13.05.2021')
+		date_box.send_keys('01.01.2000 - 17.04.2022')
+		
 		date_box.send_keys(Keys.ENTER)
 		
 		#   on website in this order:
-			#   accept pop-up window with cookies
+			#   accept all pop-up windows with cookies
 			#   scroll window
 			#   specify end date and start date (current date)
 			#   move cursor on download button
 			#   from drop down menu, select 'download as csv'
 			#   move file in your computer to data_files/XYZ.csv, where XYZ is stock short name, extracted from website
 		
+		time.sleep(3)
 		dwnmenu = driver.find_element_by_xpath(DWNMENU_svg_xpath)
 		action.move_to_element(dwnmenu)
 		action.perform()
 		
 		dwn_button = driver.find_element_by_xpath(POBIERZCSV_button_xpath)
+		
+		def is_downloaded():
+			path = r'/home/tymon/Downloads'
+			#   os.chdir(path)
+			files = os.listdir(path)
+			for f in files:
+				if 'moneypl' in f:
+					return True
+			return False
+		
+		if is_downloaded():
+			print('\n\nYou already have some moneypl file in your download directory!\nPlease remove it before continuing\n\n')
+			raise('File exists')
 		
 		dwn_button.click()
 		stock_name = driver.find_element_by_xpath(PAGETITLE_h1_xpath)
@@ -96,7 +117,20 @@ def main():
 			a = a[first + 1:len(a) - 1]
 			return a
 		stock_name_str = ext_name(stock_name.text)
-		time.sleep(3)
+		
+		#   downloading process
+		
+		
+
+		seconds_passed = 0
+		while seconds_passed <= 20:
+			time.sleep(1)
+			seconds_passed += 1
+			if is_downloaded():
+				break
+		if not is_downloaded():
+			raise('Downloading Failed')
+		
 		os.system('mv ~/Downloads/moneypl*.csv ./data_files/' + stock_name_str + '.csv')
 		print(' Done: ' + str(counter))
 		counter += 1

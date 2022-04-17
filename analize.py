@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import datetime, sys
+import numpy as np
 
 #   Program that analise historical stock prices
 
@@ -30,6 +31,23 @@ def rsi_calc(arr):
 		return 100
 	ans = 100 - (100 / (1 + total_win / total_lose))
 	return ans
+def calculate_ema(periods, prices):
+	res = np.array([None] * len(prices))
+	S = 0
+	last_none = -1
+	for i in prices:
+		if np.isnan(i):
+			last_none += 1
+		else:
+			break
+	for i in range(last_none + 1, last_none + periods):
+		S += prices[i]
+	res[last_none + periods - 1] = S / periods
+	smoothing = 2
+	for i in range(last_none + periods, len(prices)):
+		factor = smoothing / (periods + 1)
+		res[i] = factor * prices[i] + (1 - factor) * res[i-1]
+	return res
 
 def main():
 	if len(sys.argv) == 1:
@@ -42,7 +60,11 @@ def main():
 		#   WIG is already reversed ;)
 	#   reading dataframe
 	
-	if True == False:	
+	print("last 500 days? (y/n)")
+	user_option = input()
+	
+	
+	if user_option[0] == 'n' or user_option[0] == 'N':	
 		#   do you want to specify exact date of tracking?
 		#   500 most recent days, otherwise
 		print("Enter start date (format Y-m-d):")
@@ -53,10 +75,12 @@ def main():
 		End_date = datetime.datetime.strptime(End_date, "%Y-%m-%d")	
 		df = df[Start_date:End_date]
 		wig_df = wig_df[Start_date:End_date]
-	else:
+	elif user_option[0] == 'y' or user_option[0] == 'Y':
 		DAYS_BACK = 500
 		df = df[-DAYS_BACK:]
 		wig_df = wig_df[-DAYS_BACK:]
+	else:
+		raise Error("what the f*ck bro")
 	
 	#   df["EWMA"] = df["Zamknięcie"].ewm(halflife = 0.5, min_periods = 200).mean()
 	#   ewm mean, idk what it does
@@ -64,7 +88,7 @@ def main():
 	df['change'] = (df['Otwarcie'] - df['Zamknięcie']) / df['Otwarcie']
 	wig_df['change'] = (wig_df['Otwarcie'] - wig_df['Zamknięcie']) / wig_df['Otwarcie']
 	
-	WINDOW_SIZE = 25
+	WINDOW_SIZE = 14
 	
 	df["SMA"] = df['Zamknięcie'].rolling(window = WINDOW_SIZE).mean()
 	df["Upper"] = df['Zamknięcie'].rolling(window = WINDOW_SIZE).mean() + df['Zamknięcie'].rolling(window = WINDOW_SIZE).std() * 2
@@ -74,7 +98,14 @@ def main():
 	
 	df['RSI'] = df['change'].rolling(window = WINDOW_SIZE).apply(lambda x: rsi_calc(x))
 	wig_df['RSI'] = wig_df['change'].rolling(window = WINDOW_SIZE).apply(lambda x: rsi_calc(x))
+	df['EMA12'] = calculate_ema(12, df['Zamknięcie'])
+	df['EMA26'] = calculate_ema(26, df['Zamknięcie'])
+	df['MACD'] = df['EMA12'] - df['EMA26']
+	df['MACD_EMA9'] = calculate_ema(9, df['MACD'])
+	
+	
 	#   RSI calculation
+	#   MACD calculation
 	
 	df['horizontal_30'] = [30] * len(df)
 	df['horizontal_70'] = [70] * len(df)
@@ -90,8 +121,15 @@ def main():
 	plt.legend()
 	plt.title('Bollinger bands')
 	
-	if STOCK_NAME != 'WIG':
-		plt.figure(2, figsize=(20, 10))
+	plt.figure(2, figsize=(20, 10))
+	plt.plot(df['MACD'], 'r-', label = "MACD")
+	plt.plot(df['MACD_EMA9'], 'b-', label = "signal line")
+	plt.legend()
+	plt.title('MACD')
+	
+	
+	if STOCK_NAME == 'WIG':
+		plt.figure(3, figsize=(20, 10))
 		
 		plt.plot(df['RSI'], 'b-', label = 'stock RSI')
 		plt.plot(wig_df['RSI'], 'k-', label = 'wig RSI')
@@ -99,7 +137,7 @@ def main():
 		plt.plot(df['horizontal_70'], 'g--', label = 'Upper')
 		plt.legend()
 		plt.title('RSI')
-		
+	
 		
 		
 	plt.show()
