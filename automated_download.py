@@ -22,7 +22,7 @@ def main():
 				os.system('python3 web_scrap_data.py 1')
 			time.sleep(1)
 	print("THE END OF DOWNLOADING")
-	os.system('rm' + str(name))
+	os.system('rm ' + str(name))
 
 
 if __name__ == "__main__": 

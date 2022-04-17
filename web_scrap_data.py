@@ -15,34 +15,51 @@ def main():
 	soup = BeautifulSoup(page.content, 'html.parser')
 	running_mode = 'MANUAL'
 	if len(sys.argv) > 1:
-		running_mode = 'AUTOMATED'
+		if(sys.argv[1] == '1'):
+			running_mode = 'AUTOMATED'
+		else:
+			running_mode = 'GIVEN URLS'
 	print("current mode is " + str(running_mode))
 	
 	result = soup.find('div', class_='rt-tbody')
 	stocks = result.find_all('a', class_ = 'sc-18yizqs-0 sUail')
 	#   Finding all available stocks at the site
 	#   Extracting only stocks which are in ./(data_files/)akcje.csv, data_files is optional
-	
-	extract_urls = []
-	
-	for stock in stocks:
-		def check(a):
-			for j in interest:
-				#   checking if stock is "interesting" i.e. is in this file
-				if a == j:
-					return True
-			return False
-		if check(stock.text):
-			tmp = stock['href']
-			tmp = tmp[19:len(tmp) - 5]
-			extract_urls.append(url + tmp + ',archiwum.html')
-			#   extracting it's href
-	
 	driver = webdriver.Chrome()
 	driver.implicitly_wait(6)
 	#   Some stuff for drivers (second one says wait 6 seconds before error)
 	
-	
+	extract_urls = []
+	if running_mode != 'GIVEN URLS':
+		for stock in stocks:
+			def check(a):
+				for j in interest:
+					#   checking if stock is "interesting" i.e. is in this file
+					if a == j:
+						return True
+				return False
+			if check(stock.text):
+				tmp = stock['href']
+				tmp = tmp[19:len(tmp) - 5]
+				extract_urls.append(url + tmp + ',archiwum.html')
+				#   extracting it's href
+		
+		#   print(extract_urls)
+		#   if something doesn't work (execution stopped in proccess)
+		#   then just slice extract_urls, so as to not copy same data twice
+		#   added counter for simplicity
+		#   by default latest_complete is set as -1, so as not to interfere with downloading process
+		
+	else:
+		while True: # multiline reading 
+			try:
+				line = input()
+				extract_urls.append(line)
+			except:
+				break
+		print(extract_urls)
+		
+		
 	latest_completed_download = -1
 	if running_mode == 'AUTOMATED':
 		tmp_file = open('TEMP_web_scrap_latest', 'r')
@@ -51,11 +68,8 @@ def main():
 	counter = latest_completed_download + 1
 	
 	extract_urls = extract_urls[counter:]
-	#   print(extract_urls)
-	#   if something doesn't work (execution stopped in proccess)
-	#   then just slice extract_urls, so as to not copy same data twice
-	#   added counter for simplicity
-	#   by default latest_complete is set as -1, so as not to interfere with downloading process
+	
+	first_time_execution = 1
 	
 	for eurl in extract_urls:
 		#   eurl stands for extracted url XD
@@ -75,7 +89,9 @@ def main():
 		action = webdriver.ActionChains(driver)
 		try:
 			driver.find_element_by_xpath(AKCEPTUJE_button_xpath).click()
-			driver.find_element_by_xpath(YETANOTHERACCEPT_button_xpath).click()
+			print('clicked accept button', end = ' ')
+			time.sleep(5)
+			#   driver.find_element_by_xpath(YETANOTHERACCEPT_button_xpath).click()
 		except:
 			print('no accept button', end = ' ')
 		driver.execute_script("window.scrollBy(0, 200);")
@@ -143,6 +159,9 @@ def main():
 			raise('Downloading Failed')
 		
 		os.system('mv ~/Downloads/moneypl*.csv ./data_files/' + stock_name_str + '.csv')
+		with open('./info_files/' + stock_name_str + '.info', 'w') as tmp_info:
+			tmp_info.write(str(eurl))
+		
 		print(' Done: ' + str(counter))
 		
 		if running_mode == 'AUTOMATED':
@@ -157,9 +176,11 @@ def main():
 	if running_mode == 'AUTOMATED':
 		with open('TEMP_web_scrap_latest', 'w') as tmp_file:
 			tmp_file.write("Done\n")
-	else:
+	elif running_mode == 'MANUAL':
 		print("YOU MADE IT!!!")
 		wait_for_user_input = input()
+	else:
+		print("make sure everything is ok now, by running again checking script")
 
 if __name__ == "__main__":
 	main()
