@@ -21,9 +21,9 @@ def main():
 				os.system('clear')
 				os.system('python3 web_scrap_data.py 1')
 			time.sleep(1)
-	print("THE END OF DOWNLOADING")
+	print("THE END OF DOWNLOADING\ndoing check")
 	os.system('rm ' + str(name))
-
+	os.system('python3 check_data.py')
 
 if __name__ == "__main__": 
 	main()

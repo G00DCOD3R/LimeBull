@@ -13,6 +13,21 @@ def main():
 		
 		print('checking ' + str(f) + ' now	', end = '')
 		
+		NAME = f[0:3]
+		try:
+			temp_name = ''
+			with open(path + '/info_files/' + NAME + '.info', 'r') as tmp:
+				temp_name = tmp.readlines()[0][:65]
+				
+			#   optional, I used it to get ISIN numbers from urls, without it we just don't change .info 
+			#   with open('./info_files/' + NAME + '.info', 'w') as tmp:
+				#   tmp.write(str(temp_name))
+				#   tmp.write(str('\n' + temp_name[39:51] + '\n'))
+		except:
+			print('no info file!', end = '	')
+		
+		
+		
 		
 		#   removing not unique elements + sorting
 		df = pd.read_csv('./data_files/' + str(f))

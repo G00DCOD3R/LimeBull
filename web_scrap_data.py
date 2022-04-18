@@ -79,10 +79,10 @@ def main():
 		
 		#   don't forget to update those paths, when website changes ;) 
 		AKCEPTUJE_button_xpath = '/html/body/div[3]/div/div[2]/div[3]/div/button[2]'
-		OKRES_textbox_xpath = '/html/body/div[5]/div/div[10]/div/div[2]/div/main/div[2]/div[1]/div/div[3]/div/div[1]/div/div/div/div/input'
-		POBIERZCSV_button_xpath = '/html/body/div[5]/div/div[10]/div/div[2]/div/main/div[2]/div[1]/div/div[3]/div/div[2]/div/div/div[1]/div[1]/div/div[8]/div/div/div/div[2]/button[2]'
-		DWNMENU_svg_xpath = '/html/body/div[5]/div/div[10]/div/div[2]/div/main/div[2]/div[1]/div/div[3]/div/div[2]/div/div/div[1]/div[1]/div/div[8]/div/div/div/div[1]'
-		PAGETITLE_h1_xpath = '/html/body/div[5]/div/div[10]/div/div[2]/div/main/div[1]/div/div/h1'
+		OKRES_textbox_xpath = '/html/body/div[4]/div/div[10]/div/div[2]/div/main/div[2]/div[1]/div/div[3]/div/div[1]/div/div/div/div/input'
+		POBIERZCSV_button_xpath = '/html/body/div[4]/div/div[10]/div/div[2]/div/main/div[2]/div[1]/div/div[3]/div/div[2]/div/div/div[1]/div[1]/div/div[8]/div/div/div/div[2]/button[2]'
+		DWNMENU_svg_xpath = '/html/body/div[4]/div/div[10]/div/div[2]/div/main/div[2]/div[1]/div/div[3]/div/div[2]/div/div/div[1]/div[1]/div/div[8]/div/div/div/div[1]'
+		PAGETITLE_h1_xpath = '/html/body/div[4]/div/div[10]/div/div[2]/div/main/div[1]/div/div/h1'
 		YETANOTHERACCEPT_button_xpath = '/html/body/div[8]/div[5]'
 		#   this one is pretty self-explaining, just web-scraping of useful paths
 		
@@ -161,7 +161,8 @@ def main():
 		
 		os.system('mv ~/Downloads/moneypl*.csv ./data_files/' + stock_name_str + '.csv')
 		with open('./info_files/' + stock_name_str + '.info', 'w') as tmp_info:
-			tmp_info.write(str(eurl))
+			tmp_info.write(str(eurl) + '\n')
+			tmp_info.write(str(eurl[39:51]) + '\n')
 		
 		print(' Done: ' + str(counter))
 		
