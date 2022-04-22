@@ -5,15 +5,16 @@ def main():
 	path = '/home/tymon/Programy/C++/gh/tradde'
 	files = os.listdir(path + '/data_files')
 	too_short = []
+	#   pd.options.mode.chained_assignment = None # please revise it asap, because now it's too late UPDATE, should work fine now
+	
 	
 	for f in files:
-		if (f[0] > 'Z'):
-		#   if(f != 'remove.csv'):
-			continue
+		#   if(f != 'xyz.csv'):
+			#   continue
 		
 		print('checking ' + str(f) + ' now	', end = '')
 		
-		NAME = f[0:3]
+		NAME = f[:-4]
 		try:
 			temp_name = ''
 			with open(path + '/info_files/' + NAME + '.info', 'r') as tmp:
@@ -44,6 +45,23 @@ def main():
 			df.sort_values('Data', axis = 0, ascending = False, inplace = True)
 			df.to_csv('./data_files/' + str(f), mode = 'w', index = False, header = True)
 			print('corrected file (not unique / not sorted)', end = '	')
+		
+		#   removing space characters (otherwise it's not float)
+		space_correction = False
+		df = pd.read_csv('./data_files/' + str(f))
+		for i in df:
+			cnt = 0
+			for j in df[i]:
+				if type(j) == str:
+					tmp = j.split(' ')
+					if len(tmp) > 1:
+						space_correction = True
+						df.loc[cnt, i] = "".join(tmp)
+					cnt += 1
+		
+		if space_correction:
+			df.to_csv('./data_files/' + str(f), mode = 'w', index = False, header = True)
+			print('corrected file (space problem)', end = '	')
 			
 		#   checking length
 		with open(path + '/data_files/' + str(f), 'r') as tmp:
