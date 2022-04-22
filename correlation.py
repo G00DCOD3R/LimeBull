@@ -68,6 +68,12 @@ def get_correlation(df, N, lookback):
 
 
 def main():
+	
+	#   what you can adjust here:
+		#   in get_correlation() N and lookback
+		#   in correlation_bounds the upper and lower limit for determining correlations
+	#   now it takes 5 minutes for 30 stocks and 1yr lookback
+	
 	files = os.listdir('./data_files')
 	
 	#   print("two stocks separated by one space example: ABC XYZ")
@@ -79,9 +85,7 @@ def main():
 	
 	for i in range(len(files)):
 		for j in range(i+1, len(files)):
-			[stock_A, stock_B] = [files[i][:3], files[j][:3]]
-			print(stock_A, stock_B)
-			#   continue
+			[stock_A, stock_B] = [files[i][:-4], files[j][:-4]]
 			
 			df_A = pd.read_csv('./data_files/' + stock_A + '.csv')
 			df_B = pd.read_csv('./data_files/' + stock_B + '.csv')
@@ -105,7 +109,33 @@ def main():
 			print('{} + {} ----> {}'.format(stock_A, stock_B, result))
 			correlations.append((result, stock_A, stock_B))
 	correlations = sorted(correlations)
-	print(correlations)
+	
+	correlation_bounds = [-0.4, 0.4]
+	
+	print()
+	print()
+	print('NEGATIVE CORRELATION: ')
+	for i in correlations:
+		if i[0] <= correlation_bounds[0]:
+			print('({}, {}) --> {}'.format(i[1], i[2], i[0]))
+		else:
+			break
+	print()
+	print()
+	print('NO CORRELATION: ')
+	for i in correlations:
+		if i[0] > correlation_bounds[0] and i[0] <= correlation_bounds[1]:
+			print('({}, {}) --> {}'.format(i[1], i[2], i[0]))
+		elif i[0] > correlation_bounds[1]:
+			break
+	
+	print()
+	print()
+	print('POSITIVE CORRELATION: ')
+	for i in correlations:
+		if i[0] > correlation_bounds[1]:
+			print('({}, {}) --> {}'.format(i[1], i[2], i[0]))
+	
 
 
 if __name__ == "__main__": 
